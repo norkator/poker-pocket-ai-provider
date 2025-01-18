@@ -5,12 +5,12 @@ tasks using Large Language Models.
 
 ### Basic setup
 
-1. Add env var `JAN_AI_SERVER_ADDRESS=<value>` if you want bots to go crazy.
-    * Sample value `http://localhost:1337`
-
-```
-todo
-```
+1. Add env vars using following sample:
+   ```
+   POKER_SERVER_API_ADDRESS="ws://localhost:8000"
+   JAN_AI_SERVER_ADDRESS=http://localhost:1337
+   ```
+2. Run `npm run start:dev`
 
 ## License
 

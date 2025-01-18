@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const ws = new WebSocket(`wss://${process.env.POKER_SERVER_API_ADDRESS}`);
+const ws = new WebSocket(`${process.env.POKER_SERVER_API_ADDRESS}`);
 
 // Handle connection open
 ws.on('open', () => {
