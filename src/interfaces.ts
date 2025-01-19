@@ -70,5 +70,4 @@ export interface StatusUpdateInterface {
   deckStatus: string;
   deckCardsBurned: number;
   collectingPot: boolean;
-
 }

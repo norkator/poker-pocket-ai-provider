@@ -65,21 +65,25 @@ export async function fetchLLMChatCompletion(
 export async function fetchLLMHoldemActionCompletion(
   playerCards: string[],
   middleCards: string[],
-  currentStatus: string
-): Promise<string | null> {
-
-  const gameInstruction = `You are playing in a Texas hold 'em table and your task is to determine next action to proceed.`;
-  const cardsInstructions = `You have ${playerCards.join(', ')} as hole cards and current middle cards are ${middleCards.join(', ')}.`;
-  const currentStatusInstruction = `Game current status is ${currentStatus}.`;
-  const limitations = `You can only answer using one of these values: CALL, CHECK or FOLD.`
-  const instructionsTwo = `Use FOLD action only in rare cases.`
+  currentStatus: string,
+  highestTotalBet: number
+): Promise<{ action: string; amount?: number; reason: string } | null> {
+  const gameInstruction = `You are playing at a Texas hold 'em table. Your task is to determine the next action to proceed. Your response should be a JSON object in the following format:
+{
+  "action": "RAISE" | "CALL" | "CHECK" | "FOLD",
+  "amount": <number>, // Only for RAISE, otherwise null or omitted
+  "reason": <string> // Small explanation of why this action was chosen
+}`;
+  const cardsInstructions = `You have ${playerCards.join(', ')} as hole cards, and the current middle cards are ${middleCards.join(', ')}.`;
+  const currentStatusInstruction = `The game's current status is ${currentStatus}. The highest total bet so far is ${highestTotalBet}.`;
+  const limitations = `You can only choose from these actions: RAISE, CALL, CHECK, or FOLD. Use FOLD only in rare cases.`;
 
   const url = `${process.env.JAN_AI_SERVER_ADDRESS}/v1/chat/completions`;
   const data = {
     messages: [
       {
         role: 'system',
-        content: `${gameInstruction} ${cardsInstructions} ${currentStatusInstruction} ${limitations} ${instructionsTwo}`
+        content: `${gameInstruction} ${cardsInstructions} ${currentStatusInstruction} ${limitations}`
       },
       {role: 'user', content: 'What is your action?'},
     ],
@@ -99,9 +103,22 @@ export async function fetchLLMHoldemActionCompletion(
         'Content-Type': 'application/json',
       },
     });
-    const {choices, usage} = response.data;
-    return choices.length > 0 ? choices[0].message.content : null;
+    const {choices} = response.data;
+    if (choices.length > 0) {
+      const content = choices[0].message.content;
+      try {
+        const actionResponse = JSON.parse(content);
+        if (actionResponse && actionResponse.action && actionResponse.reason) {
+          return actionResponse;
+        }
+      } catch (e) {
+        console.error('Error parsing AI response:', e);
+      }
+    }
+    return null;
   } catch (error) {
+    console.error('Error fetching AI action:', error);
     return null;
   }
 }
+

@@ -47,25 +47,30 @@ ws.on('message', (data) => {
       const isPlayerTurn = statusUpdate.playersData
         .find(player => Number(player.playerId) === Number(playerId))?.isPlayerTurn ?? false;
       middleCards = statusUpdate.middleCards ?? [];
+      const highestTotalBet: number = statusUpdate.playersData
+        .reduce((max, player) => Math.max(max, Number(player.totalBet)), 0);
       if (isPlayerTurn && selectedTable !== null) {
         logger.info(`It's now our turn`);
         const table = selectedTable; // Capture the value
-        logger.info(`It's now our turn`);
-        fetchLLMHoldemActionCompletion(playerCards, middleCards, statusUpdate.currentStatus).then((action: string | null) => {
+        fetchLLMHoldemActionCompletion(
+          playerCards, middleCards, statusUpdate.currentStatus, highestTotalBet
+        ).then((action: { action: string; amount?: number; reason: string } | null) => {
           if (action !== null) {
-            const a = action.trim().toUpperCase();
-            logger.info(`Action ${a} for table ${table.tableId}`);
-            if (a.includes('CHECK')) {
+            logger.info(`Action ${action.action} for table ${table.tableId}. Reason ${action.reason}`);
+            if (action.action.includes('CHECK')) {
               setCheck(table.tableId);
-            } else if (a.includes('CALL')) {
+            } else if (action.action.includes('CALL')) {
               setCheck(table.tableId);
-            } else if (a.includes('FOLD')) {
+            } else if (action.action.includes('FOLD')) {
               setFold(table.tableId);
+            } else if (action.action.includes('RAISE') && action.amount) {
+              const amount: number = Number(action.amount);
+              setRaise(table.tableId, amount);
             } else {
               setFold(table.tableId);
             }
           } else {
-            console.log('null action');
+            logger.warn('LLM null action, will fold');
             setFold(table.tableId);
           }
         });
@@ -121,6 +126,14 @@ function setCheck(tableId: number) {
   ws.send(JSON.stringify({
     key: 'setCheck',
     tableId: tableId,
+  }));
+}
+
+function setRaise(tableId: number, amount: number) {
+  ws.send(JSON.stringify({
+    key: 'setRaise',
+    tableId: tableId,
+    amount
   }));
 }
 
