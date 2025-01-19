@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 import {Game} from './types';
-import {ChatCompletionResponse} from "./interfaces";
+import {ChatCompletionResponse} from './interfaces';
 
 dotenv.config();
 

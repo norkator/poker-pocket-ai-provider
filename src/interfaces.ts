@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import {Game} from './types';
 
 export interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
@@ -23,4 +24,19 @@ export interface ChatCompletionResponse {
     prompt_tokens: number;
     total_tokens: number;
   };
+}
+
+export interface TableInterface {
+  game: Game;
+  tableId: number;
+  tableName: string;
+  tableMinBet: number;
+  playerCount: number;
+  maxSeats: number;
+  passwordProtected: boolean;
+}
+
+export interface ChatMessageInterface {
+  playerName: string;
+  message: string;
 }
