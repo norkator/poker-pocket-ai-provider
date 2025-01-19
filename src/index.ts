@@ -8,6 +8,7 @@ dotenv.config();
 
 const ws = new WebSocket(`${process.env.POKER_SERVER_API_ADDRESS}`);
 let playerId: number = -1;
+let authToken: string | null = null;
 let playerName: string = '';
 let selectedTable: TableInterface | null = null;
 let playerCards: string[] = [];
@@ -15,29 +16,50 @@ let middleCards: string[] = [];
 
 const username = process.env.USERNAME;
 const password = process.env.PASSWORD;
-const targetTableId = process.env.TABLE_ID;
+const targetTableId: number = Number(process.env.TABLE_ID);
+const targetTablePassword = process.env.TABLE_PASSWORD;
 
 // Handle connection open
 ws.on('open', () => {
   logger.info('Connected to the server');
-  ws.send(JSON.stringify({key: 'getTables'}));
 });
 
 // Handle incoming messages
 ws.on('message', (data) => {
   const message: { key: string, data: any } = JSON.parse(data.toString());
+  let success: boolean = false;
   switch (message.key) {
     case 'connected':
       playerId = Number(message.data.playerId);
       playerName = message.data.playerName;
       logger.info(`Got playerId ${playerId}`);
+      ws.send(JSON.stringify({key: 'login', username: username, password: password}));
+      break;
+    case 'login':
+      success = message.data.success;
+      if (!success) {
+        logger.fatal(`Failed to login with account ${username}`);
+        process.exit(1);
+      }
+      authToken = message.data.token;
+      logger.info(`Login success with account ${username}`);
+      ws.send(JSON.stringify({key: 'userParams', token: authToken}));
+      break;
+    case 'userParams':
+      success = message.data.success;
+      if (!success) {
+        logger.fatal(`Back end failed to set userParams for account ${username}`);
+        process.exit(1)
+      }
+      logger.info(`Set of userParams success with account ${username}`);
+      ws.send(JSON.stringify({key: 'getTables'}));
       break;
     case 'getTables':
-      const table = findSuitableTable(message.data.tables);
+      const table: TableInterface | null = findTargetTable(message.data.tables, targetTableId);
       if (table !== null) {
-        logger.info(`Found suitable table ${table.tableName}`);
+        logger.info(`Found target table ${table.tableName}`);
         selectedTable = table;
-        ws.send(JSON.stringify({key: 'selectTable', tableId: table.tableId}));
+        ws.send(JSON.stringify({key: 'selectTable', tableId: table.tableId, password: targetTablePassword}));
       }
       break;
     case 'holeCards':
@@ -112,6 +134,12 @@ ws.on('error', (error) => {
 ws.on('close', (code, reason) => {
   logger.info(`Connection closed: ${code} ${reason}`);
 });
+
+function findTargetTable(tables: TableInterface[], targetTable: number): TableInterface | null {
+  const filteredTables: TableInterface[] = tables
+    .filter((t: TableInterface) => t.tableId === targetTable && t.game === 'HOLDEM' && t.playerCount < t.maxSeats);
+  return filteredTables.length > 0 ? filteredTables[0] : null
+}
 
 function findSuitableTable(tables: TableInterface[]): TableInterface | null {
   const filteredTables: TableInterface[] = tables
