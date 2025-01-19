@@ -22,6 +22,7 @@ running locally. This addon expects you have `llama3.1-8b-instruct` model instal
    PASSWORD="<user-account-password>"
    TABLE_ID=123
    TABLE_PASSWORD="<table-password>"
+   LLM_MODEL="llama3.1-8b-instruct"
    ```
 2. Run `npm run start:dev`
 

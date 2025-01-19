@@ -5,7 +5,7 @@ import {ChatCompletionResponse} from './interfaces';
 
 dotenv.config();
 
-const model = 'llama3.1-8b-instruct';
+const model = process.env.LLM_MODEL;
 
 function getGameName(game: Game): string {
   switch (game) {
