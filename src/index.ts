@@ -13,6 +13,10 @@ let selectedTable: TableInterface | null = null;
 let playerCards: string[] = [];
 let middleCards: string[] = [];
 
+const username = process.env.USERNAME;
+const password = process.env.PASSWORD;
+const targetTableId = process.env.TABLE_ID;
+
 // Handle connection open
 ws.on('open', () => {
   logger.info('Connected to the server');
