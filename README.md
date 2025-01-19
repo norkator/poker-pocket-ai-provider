@@ -18,6 +18,14 @@ running locally. This addon expects you have `llama3.1-8b-instruct` model instal
    ```
 2. Run `npm run start:dev`
 
+#### Optional
+
+For staging connection:
+
+```
+POKER_SERVER_API_ADDRESS="wss://pokerpocket-staging.nitramite.com/api"
+```
+
 ## License
 
 MIT
