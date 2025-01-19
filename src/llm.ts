@@ -65,16 +65,22 @@ export async function fetchLLMChatCompletion(
 export async function fetchLLMHoldemActionCompletion(
   playerCards: string[],
   middleCards: string[],
+  currentStatus: string
 ): Promise<string | null> {
 
   const gameInstruction = `You are playing in a Texas hold 'em table and your task is to determine next action to proceed.`;
   const cardsInstructions = `You have ${playerCards.join(', ')} as hole cards and current middle cards are ${middleCards.join(', ')}.`;
+  const currentStatusInstruction = `Game current status is ${currentStatus}.`;
   const limitations = `You can only answer using one of these values: CALL, CHECK or FOLD.`
+  const instructionsTwo = `Use FOLD action only in rare cases.`
 
   const url = `${process.env.JAN_AI_SERVER_ADDRESS}/v1/chat/completions`;
   const data = {
     messages: [
-      {role: 'system', content: `${gameInstruction} ${cardsInstructions} ${limitations}`},
+      {
+        role: 'system',
+        content: `${gameInstruction} ${cardsInstructions} ${currentStatusInstruction} ${limitations} ${instructionsTwo}`
+      },
       {role: 'user', content: 'What is your action?'},
     ],
     model: model,

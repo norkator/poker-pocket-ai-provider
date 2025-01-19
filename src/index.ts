@@ -49,23 +49,24 @@ ws.on('message', (data) => {
       middleCards = statusUpdate.middleCards ?? [];
       if (isPlayerTurn && selectedTable !== null) {
         logger.info(`It's now our turn`);
-        fetchLLMHoldemActionCompletion(playerCards, middleCards).then((action: string | null) => {
+        const table = selectedTable; // Capture the value
+        logger.info(`It's now our turn`);
+        fetchLLMHoldemActionCompletion(playerCards, middleCards, statusUpdate.currentStatus).then((action: string | null) => {
           if (action !== null) {
-            switch (action) {
-              case 'CALL':
-              case 'CHECK':
-                setCheck(selectedTable?.tableId || -1);
-                break;
-              // case 'RAISE':
-              //   const amount = ...
-              //   setRaise(table.tableId, amount);
-              default:
-                setFold(selectedTable?.tableId || -1);
-                break;
+            const a = action.trim().toUpperCase();
+            logger.info(`Action ${a} for table ${table.tableId}`);
+            if (a.includes('CHECK')) {
+              setCheck(table.tableId);
+            } else if (a.includes('CALL')) {
+              setCheck(table.tableId);
+            } else if (a.includes('FOLD')) {
+              setFold(table.tableId);
+            } else {
+              setFold(table.tableId);
             }
           } else {
             console.log('null action');
-            setFold(selectedTable?.tableId || -1)
+            setFold(table.tableId);
           }
         });
       }
@@ -89,7 +90,7 @@ ws.on('message', (data) => {
 });
 
 ws.on('ping', () => {
-  logger.debug('Ping received from server. Answering with pong.');
+  // logger.debug('Ping received from server. Answering with pong.');
   ws.pong(); // Send a pong response
 });
 
@@ -110,17 +111,17 @@ function findSuitableTable(tables: TableInterface[]): TableInterface | null {
 }
 
 function setFold(tableId: number) {
-  const data = JSON.stringify({
+  ws.send(JSON.stringify({
     key: 'setFold',
     tableId: tableId,
-  });
-  ws.send(data);
+  }));
 }
 
 function setCheck(tableId: number) {
-  const data = JSON.stringify({
+  ws.send(JSON.stringify({
     key: 'setCheck',
     tableId: tableId,
-  });
-  ws.send(data);
+  }));
 }
+
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
