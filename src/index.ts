@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import * as dotenv from 'dotenv';
 import logger from './logger';
-import {ChatMessageInterface, TableInterface} from './interfaces';
+import {ChatMessageInterface, StatusUpdateInterface, TableInterface} from './interfaces';
 import {fetchLLMChatCompletion} from './llm';
 
 dotenv.config();
@@ -36,8 +36,19 @@ ws.on('message', (data) => {
         ws.send(JSON.stringify({key: 'selectTable', tableId: table.tableId}));
       }
       break;
+    case 'holeCards':
+      const holeCards: string[] = message.data.players
+        .find((player: any) => player.playerId === playerId)?.cards ?? [];
+      logger.info(`My hole cards ${holeCards}`);
+      playerCards = holeCards;
+      break;
     case 'statusUpdate':
-      /* */
+      const statusUpdate = message.data as StatusUpdateInterface;
+      const isPlayerTurn = statusUpdate.playersData
+        .find(player => player.playerId === playerId)?.isPlayerTurn ?? false;
+      if (isPlayerTurn) {
+        logger.info(`It's now our turn`);
+      }
       break;
     case 'chatMessage':
       const chatMessage: ChatMessageInterface = message.data.chatMessage;
@@ -52,7 +63,7 @@ ws.on('message', (data) => {
       }
       break;
     default:
-      console.log(message);
+      // console.log(message);
       break;
   }
 });

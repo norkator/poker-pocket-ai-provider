@@ -27,7 +27,7 @@ export async function fetchLLMChatCompletion(
   userMsg: string,
 ): Promise<string | null> {
 
-  const gameInstruction = `You are a extremely rude but humorous bot in a ${getGameName(game)} table and your name is ${playerName}`;
+  const gameInstruction = `You are a rude but humorous bot in a ${getGameName(game)} table and your name is ${playerName}`;
   const chatInstructions = `You are part of public chat where user called ${msgPlayerName} sent a message.`;
   const cardsInstructions = `You have ${playerCards.join(', ')} cards and middle cards ${middleCardsStr.join(', ')} and you use this information for bluffing reasons.`;
   const limitations = `Keep answer under 40 characters.`

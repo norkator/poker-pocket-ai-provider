@@ -40,3 +40,35 @@ export interface ChatMessageInterface {
   playerName: string;
   message: string;
 }
+
+export interface PlayersDataInterface {
+  playerId: number;
+  playerName: string;
+  playerMoney: number;
+  totalBet: number;
+  isPlayerTurn: boolean;
+  isFold: boolean;
+  timeLeft: number;
+  timeBar: number;
+}
+
+export interface StatusUpdateInterface {
+  totalPot: number;
+  tableMinBet: number;
+  currentStatus: string;
+  currentTurnText: string;
+  middleCards: string[];
+  playersData: PlayersDataInterface[];
+  isCallSituation: boolean;
+  isResultsCall: boolean;
+  roundWinnerPlayerIds: number[];
+  roundWinnerPlayerCards: string[];
+  tableName: string;
+  playingPlayersCount: number;
+  appendPlayersCount: number;
+  spectatorsCount: number;
+  deckStatus: string;
+  deckCardsBurned: number;
+  collectingPot: boolean;
+
+}
