@@ -40,14 +40,15 @@ export async function fetchLLMChatCompletion(
   const chatInstructions = `You are part of public chat where user called ${msgPlayerName} sent a message. The user is a ${role}.`;
   const cardsInstructions = `You have ${playerCards.join(', ')} cards and middle cards ${middleCards.join(', ')} for bluffing purposes.`;
   const tableContext = `The current game status is '${currentStatus}', and the current turn is described as: '${currentTurnText}'.`;
+  const otherPlayers = `Other players at the table are: ${playerNames.filter((name) => name !== playerName).join(", ")}. Avoid answering when message is targeted to other players.`;
   const limitations = `Keep your response under 40 characters. If the message is not targeted to you or lacks relevance, return null.`;
-  
+
   const url = `${process.env.JAN_AI_SERVER_ADDRESS}/v1/chat/completions`;
   const data = {
     messages: [
       {
         role: 'system',
-        content: `${gameInstruction} ${chatInstructions} ${cardsInstructions} ${tableContext} ${limitations}`,
+        content: `${gameInstruction} ${chatInstructions} ${cardsInstructions} ${tableContext} ${otherPlayers} ${limitations}`,
       },
       {role: 'user', content: userMsg},
     ],
