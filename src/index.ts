@@ -1,8 +1,16 @@
 import WebSocket from 'ws';
 import * as dotenv from 'dotenv';
 import logger from './logger';
-import {ChatMessageInterface, StatusUpdateInterface, TableInterface} from './interfaces';
-import {fetchLLMChatCompletion, fetchLLMHoldemActionCompletion} from './llm';
+import {
+  ChatMessageInterface,
+  CurrentTableInfoInterface,
+  StatusUpdateInterface,
+  TableInterface
+} from './interfaces';
+import {
+  fetchLLMChatCompletion,
+  fetchLLMHoldemActionCompletion
+} from './llm';
 
 dotenv.config();
 
@@ -13,6 +21,7 @@ let playerName: string = '';
 let selectedTable: TableInterface | null = null;
 let playerCards: string[] = [];
 let middleCards: string[] = [];
+let currentTableInfo: CurrentTableInfoInterface = {currentStatus: "", currentTurnText: "", playerNames: []}
 
 const username = process.env.PP_USERNAME;
 const password = process.env.PP_PASSWORD;
@@ -74,6 +83,9 @@ ws.on('message', (data) => {
       const isPlayerTurn = statusUpdate.playersData
         .find(player => Number(player.playerId) === Number(playerId))?.isPlayerTurn ?? false;
       middleCards = statusUpdate.middleCards ?? [];
+      currentTableInfo.currentStatus = statusUpdate.currentStatus;
+      currentTableInfo.currentTurnText = statusUpdate.currentTurnText;
+      currentTableInfo.playerNames = statusUpdate.playersData.map(player => player.playerName);
       const highestTotalBet: number = statusUpdate.playersData
         .reduce((max, player) => Math.max(max, Number(player.totalBet)), 0);
       if (isPlayerTurn && selectedTable !== null) {
@@ -107,7 +119,8 @@ ws.on('message', (data) => {
       const chatMessage: ChatMessageInterface = message.data.chatMessage;
       if (selectedTable !== null && chatMessage.playerName !== playerName) {
         fetchLLMChatCompletion(
-          selectedTable.game, playerName, playerCards, middleCards, chatMessage.playerName, chatMessage.message
+          selectedTable.game, playerName, playerCards, middleCards, chatMessage.playerName, chatMessage.message,
+          currentTableInfo
         ).then((msg: string | null) => {
           if (msg !== null) {
             ws.send(JSON.stringify({key: 'chatMessage', message: msg}));

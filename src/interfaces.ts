@@ -71,3 +71,9 @@ export interface StatusUpdateInterface {
   deckCardsBurned: number;
   collectingPot: boolean;
 }
+
+export interface CurrentTableInfoInterface {
+  currentStatus: string;
+  currentTurnText: string;
+  playerNames: string[];
+}

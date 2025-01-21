@@ -1,7 +1,10 @@
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 import {Game} from './types';
-import {ChatCompletionResponse} from './interfaces';
+import {
+  ChatCompletionResponse,
+  CurrentTableInfoInterface
+} from './interfaces';
 
 dotenv.config();
 
@@ -25,6 +28,7 @@ export async function fetchLLMChatCompletion(
   middleCards: string[],
   msgPlayerName: string,
   userMsg: string,
+  currentTableInfo: CurrentTableInfoInterface
 ): Promise<string | null> {
 
   const gameInstruction = `You are a rude but humorous bot in a ${getGameName(game)} table and your name is ${playerName}`;
