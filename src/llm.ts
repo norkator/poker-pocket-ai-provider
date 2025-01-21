@@ -5,6 +5,7 @@ import {
   ChatCompletionResponse,
   CurrentTableInfoInterface
 } from './interfaces';
+import logger from './logger';
 
 dotenv.config();
 
@@ -30,16 +31,24 @@ export async function fetchLLMChatCompletion(
   userMsg: string,
   currentTableInfo: CurrentTableInfoInterface
 ): Promise<string | null> {
+  const {currentStatus, currentTurnText, playerNames} = currentTableInfo;
 
-  const gameInstruction = `You are a rude but humorous bot in a ${getGameName(game)} table and your name is ${playerName}`;
-  const chatInstructions = `You are part of public chat where user called ${msgPlayerName} sent a message.`;
-  const cardsInstructions = `You have ${playerCards.join(', ')} cards and middle cards ${middleCards.join(', ')} and you use this information for bluffing reasons.`;
-  const limitations = `Keep answer under 40 characters.`
+  const isPlayer = playerNames.includes(msgPlayerName);
+  const role = isPlayer ? 'player' : 'spectator';
 
+  const gameInstruction = `You are a rude but humorous bot in a ${getGameName(game)} table and your name is ${playerName}.`;
+  const chatInstructions = `You are part of public chat where user called ${msgPlayerName} sent a message. The user is a ${role}.`;
+  const cardsInstructions = `You have ${playerCards.join(', ')} cards and middle cards ${middleCards.join(', ')} for bluffing purposes.`;
+  const tableContext = `The current game status is '${currentStatus}', and the current turn is described as: '${currentTurnText}'.`;
+  const limitations = `Keep your response under 40 characters. If the message is not targeted to you or lacks relevance, return null.`;
+  
   const url = `${process.env.JAN_AI_SERVER_ADDRESS}/v1/chat/completions`;
   const data = {
     messages: [
-      {role: 'system', content: `${gameInstruction} ${chatInstructions} ${cardsInstructions} ${limitations}`},
+      {
+        role: 'system',
+        content: `${gameInstruction} ${chatInstructions} ${cardsInstructions} ${tableContext} ${limitations}`,
+      },
       {role: 'user', content: userMsg},
     ],
     model: model,
@@ -58,9 +67,14 @@ export async function fetchLLMChatCompletion(
         'Content-Type': 'application/json',
       },
     });
-    const {choices, usage} = response.data;
-    return choices.length > 0 ? choices[0].message.content : null;
+    const {choices} = response.data;
+    if (choices.length > 0) {
+      const responseText = choices[0].message.content.trim();
+      return responseText === 'null' ? null : responseText;
+    }
+    return null;
   } catch (error) {
+    logger.error('Error fetching chat completion:', error);
     return null;
   }
 }
@@ -116,12 +130,12 @@ export async function fetchLLMHoldemActionCompletion(
           return actionResponse;
         }
       } catch (e) {
-        console.error('Error parsing AI response:', e);
+        logger.error('Error parsing AI response:', e);
       }
     }
     return null;
   } catch (error) {
-    console.error('Error fetching AI action:', error);
+    logger.error('Error fetching AI action:', error);
     return null;
   }
 }
