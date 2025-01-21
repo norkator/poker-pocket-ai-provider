@@ -47,7 +47,7 @@ ws.on('message', (data) => {
       break;
     case 'userParams':
       success = message.data.success;
-      playerName = message.data.username;
+      playerName = message.data.userStats.username;
       if (!success) {
         logger.fatal(`Back end failed to set userParams for account ${username}`);
         process.exit(1)
