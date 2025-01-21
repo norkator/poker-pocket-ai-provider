@@ -14,8 +14,8 @@ let selectedTable: TableInterface | null = null;
 let playerCards: string[] = [];
 let middleCards: string[] = [];
 
-const username = process.env.USERNAME;
-const password = process.env.PASSWORD;
+const username = process.env.PP_USERNAME;
+const password = process.env.PP_PASSWORD;
 const targetTableId: number = Number(process.env.TABLE_ID);
 const targetTablePassword = process.env.TABLE_PASSWORD;
 
@@ -47,6 +47,7 @@ ws.on('message', (data) => {
       break;
     case 'userParams':
       success = message.data.success;
+      playerName = message.data.username;
       if (!success) {
         logger.fatal(`Back end failed to set userParams for account ${username}`);
         process.exit(1)

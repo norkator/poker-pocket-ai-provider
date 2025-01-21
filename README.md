@@ -18,8 +18,8 @@ running locally. This addon expects you have `llama3.1-8b-instruct` model instal
    ```
    POKER_SERVER_API_ADDRESS="ws://localhost:8000"
    JAN_AI_SERVER_ADDRESS=http://localhost:1337
-   USERNAME="<user-account>"
-   PASSWORD="<user-account-password>"
+   PP_USERNAME="<user-account>"
+   PP_PASSWORD="<user-account-password>"
    TABLE_ID=123
    TABLE_PASSWORD="<table-password>"
    LLM_MODEL="llama3.1-8b-instruct"
